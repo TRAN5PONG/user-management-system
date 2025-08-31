@@ -1,28 +1,54 @@
-import dotenv from 'dotenv';
-import app from './app';
-import { initRabbitMQ , receiveFromQueue } from './integration/rabbitmqClient';
+import dotenv from "dotenv";
+import Fastify from "fastify";
+import { matchRoutes } from "./routes/matchRoutes";
+import { invitationRoutes } from "./routes/invitationRoutes";
+import { initRabbitMQ, receiveFromQueue, closeRabbitMQ } from "./integration/rabbitmqClient";
+
+
 dotenv.config();
 
-const port = Number(process.env.PORT);
-const host = process.env.HOST;
+const port = Number(process.env.PORT) || 3000;
+const host = process.env.HOST || "0.0.0.0";
+const server = Fastify({ logger: true });
 
+const start = async () => {
+  try {
+    // Register CORS plugin
+    await server.register(import("@fastify/cors"), {
+      origin: true,
+    });
 
-async function StartServer()
-{
-    try 
-    {
-        app.listen({port : port , host : host} , () => {console.log(`server listen on http://${host}:${port} ...`)})
-    } 
-    catch (error) 
-    {
-        console.log("error in server")
-        process.exit(1);
-    }
-
+    // Register routes
+    server.register(matchRoutes);
+    server.register(invitationRoutes);
+    
+    // Initialize RabbitMQ before starting server
     await initRabbitMQ();
-    await receiveFromQueue('game');
+    await receiveFromQueue("game");
+    
+    // Start server
+    await server.listen({ port, host });
+    console.log(`✅ Game Service ready at http://${host}:${port}`);
+    
+  } catch (err) {
+    server.log.error(err);
+    process.exit(1);
+  }
+};
 
-}
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('Received SIGINT, shutting down gracefully...');
+  await closeRabbitMQ();
+  await server.close();
+  process.exit(0);
+});
 
+process.on('SIGTERM', async () => {
+  console.log('Received SIGTERM, shutting down gracefully...');
+  await closeRabbitMQ();
+  await server.close();
+  process.exit(0);
+});
 
-StartServer();
+start();

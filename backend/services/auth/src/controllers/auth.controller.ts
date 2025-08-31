@@ -15,6 +15,7 @@ import { PasswordMessage ,EmailMessage , AuthError, UserProfileMessage } from '.
 import { fetchIntraToken , fetchGoogleUser , fetchIntraUser , sendResponseToFrontend } from '../utils/oauthHelpers';
 import { simpleErrorHandler } from '../utils/errorHandler';
 
+
 declare module 'fastify' {
   interface FastifyInstance {
     googleOAuth2: OAuth2Namespace;
