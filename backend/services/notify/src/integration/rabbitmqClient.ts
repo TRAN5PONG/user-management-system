@@ -46,8 +46,12 @@ export async function receiveFromQueue(queue: string)
       if(queue == 'friends')
         await notifyFromFriendsQueue(data);
       else if(queue == 'emailhub')
+<<<<<<< HEAD
         await sendEmailMessage(data)
 
+=======
+        sendEmailMessage(data);
+>>>>>>> a1cc52daed7b2f7101dd26c0fb978caf6060314f
     });
   }
   catch (err: any) 

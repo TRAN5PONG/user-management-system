@@ -62,7 +62,12 @@ async function generate6DigitCode(): Promise<string>
 export async function sendEmailMessage(data:any)
 {
   const code: string = await generate6DigitCode();
+<<<<<<< HEAD
   await redis.set(`verify:${data.email}`, code, "EX", 260);
+=======
+  await redis.set(`verify:${data.email}`, code, "EX", "260");
+
+>>>>>>> a1cc52daed7b2f7101dd26c0fb978caf6060314f
 
   await sendEmail(data.email , code);
 }
